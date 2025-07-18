@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Peticiones en Vivo</title>
+    <script src="https://js.pusher.com/7.0/pusher.min.js"></script>
+    <style>
+        /* Estilos para un panel limpio y oscuro */
+        body { font-family: sans-serif; background-color: #121212; color: #EAEAEA; margin: 0; padding: 20px; }
+        h1 { text-align: center; color: #4A90E2; }
+        #requests-list { list-style: none; padding: 0; }
+        .request-item { background: #1E1E1E; border: 1px solid #333; border-radius: 8px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; opacity: 0; transform: translateY(20px ); transition: all 0.5s; }
+        .request-item.visible { opacity: 1; transform: translateY(0); }
+        .request-item .info { flex-grow: 1; }
+        .request-item .song { font-size: 1.2em; font-weight: bold; }
+        .request-item .artist { color: #A0A0A0; }
+        .request-item .name { font-style: italic; font-size: 0.9em; }
+        .request-item .done-btn { background: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Peticiones en Vivo 🎵</h1>
+    <ul id="requests-list"></ul>
+
+    <script>
+        // REEMPLAZA con tu KEY y CLUSTER de Pusher
+        const PUSHER_KEY = 'TU_PUSHER_KEY';
+        const PUSHER_CLUSTER = 'tu_pusher_cluster';
+
+        const pusher = new Pusher(PUSHER_KEY, {
+            cluster: PUSHER_CLUSTER
+        });
+
+        const channel = pusher.subscribe('dj-channel');
+        channel.bind('new-request', function(data) {
+            const list = document.getElementById('requests-list');
+            const item = document.createElement('li');
+            item.className = 'request-item';
+            item.id = `req-${data.id}`;
+            item.innerHTML = `
+                <div class="info">
+                    <div class="song">${data.song}</div>
+                    <div class="artist">${data.artist}</div>
+                    <div class="name">- por ${data.name}</div>
+                </div>
+                <button class="done-btn" onclick="markAsDone('req-${data.id}')">Hecho</button>
+            `;
+            list.prepend(item);
+            setTimeout(() => item.classList.add('visible'), 50);
+        });
+
+        function markAsDone(itemId) {
+            const item = document.getElementById(itemId);
+            if (item) {
+                item.style.opacity = '0';
+                setTimeout(() => item.remove(), 500);
+            }
+        }
+    </script>
+</body>
+</html>
+
